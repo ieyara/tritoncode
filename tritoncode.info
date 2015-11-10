@@ -1,0 +1,4 @@
+core = 7.x
+description = Modulo que permite el chequeo de un codigo Triton.
+name = TritonCode
+package = C13

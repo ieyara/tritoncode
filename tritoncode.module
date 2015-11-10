@@ -1,0 +1,241 @@
+<?php
+
+/**
+ * @file
+ * Modulo para:
+ *  - Formulario para introcucin un codigo Triton y validarlo contra un CSV
+ *  - Una nueva regla de validacion para el modul Webform Validation (hook_webform_validation_validate)
+ */
+
+/**
+ * hook_block_info()
+ * Componemos un bloque para ingresar el codigo Triton
+ */
+function tritoncode_block_info() {
+	$blocks = array();
+
+	$blocks['tritoncode'] = array(
+		'info' => t('Info: Triton Code'), 
+		'cache' => DRUPAL_NO_CACHE,
+	);
+	return $blocks;
+}
+
+/**
+ * Implements hook_webform_validation_validators()
+ * Creamos un validador del codigo Triton
+ */
+function tritoncode_webform_validation_validators() {
+	return array(
+		'triton_code' => array(
+			'name' => "Triton Code",
+			'component_types' => array(
+				'hidden',
+			),
+			'description' => 'Validar codigo Triton',
+		)
+	);
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function tritoncode_block_view($delta = '') {
+	$block = array();
+	switch ($delta) {
+		case 'tritoncode':
+			$block['subject'] = t('Triton Code');
+			$formulario = drupal_get_form('triton_form_builder');
+			$block['content'] = drupal_render($formulario);
+		break;
+	}
+	return $block;
+}
+
+
+/**
+ * Funcion que crea el formulario
+ */
+function triton_form_builder() {
+	$form['instructions'] = array(
+		'#markup' => '<h3>Introduce el código Tritón:</h3>',
+	);
+	$form['code'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Código'),
+		'#size' => 15,
+		'#maxlength' => 15,
+		'#attributes' =>array('placeholder' => t('Código Aquí'))
+	);
+	$form['machine'] = array(
+		'#type' => 'select',
+		'#title' => t('Máquina'),
+		'#options' => array(
+			'H1' => 'H1',
+			'H2' => 'H2',
+			'H3' => 'H3',
+			'H4' => 'H4',
+		),
+		'#required' => TRUE,
+		'#empty_option' => 'H-',
+   );
+	$form['hh'] = array(
+		'#type' => 'select',
+		'#title' => t('Horas'),
+		'#options' => array(
+			'00' => '00',
+			'01' => '01',
+			'02' => '02',
+			'03' => '03',
+			'04' => '04',
+			'05' => '05',
+			'06' => '06',
+			'07' => '07',
+			'08' => '08',
+			'09' => '09',
+			'10' => '10',
+			'11' => '11',
+			'12' => '12',
+			'13' => '13',
+			'14' => '14',
+			'15' => '15',
+			'16' => '16',
+			'17' => '17',
+			'18' => '18',
+			'19' => '19',
+			'20' => '20',
+			'21' => '21',
+			'22' => '22',
+			'23' => '23',
+		),
+		'#required' => TRUE,
+		'#empty_option' => 'hh',
+   );   
+  	$form['mm'] = array(
+		'#type' => 'select',
+		'#title' => t('Minutos'),
+		'#options' => array(
+			'00' => '00',
+			'01' => '01',
+			'02' => '02',
+			'03' => '03',
+			'04' => '04',
+			'05' => '05',
+			'06' => '06',
+			'07' => '07',
+			'08' => '08',
+			'09' => '09',
+			'10' => '10',
+			'11' => '11',
+			'12' => '12',
+			'13' => '13',
+			'14' => '14',
+			'15' => '15',
+			'16' => '16',
+			'17' => '17',
+			'18' => '18',
+			'19' => '19',
+			'20' => '20',
+			'21' => '21',
+			'22' => '22',
+			'23' => '23',
+			'24' => '24',
+			'25' => '25',
+			'26' => '26',
+			'27' => '27',
+			'28' => '28',
+			'29' => '29',
+			'30' => '30',
+			'31' => '31',
+			'32' => '32',
+			'33' => '33',
+			'34' => '34',
+			'35' => '35',
+			'36' => '36',
+			'37' => '37',
+			'38' => '38',
+			'39' => '39',
+			'40' => '40',
+			'41' => '41',
+			'42' => '42',
+			'43' => '43',
+			'44' => '44',
+			'45' => '45',
+			'46' => '46',
+			'47' => '47',
+			'48' => '48',
+			'49' => '49',
+			'50' => '50',
+			'51' => '51',
+			'52' => '52',
+			'53' => '53',
+			'54' => '54',
+			'55' => '55',
+			'56' => '56',
+			'57' => '57',
+			'58' => '58',
+			'59' => '59',
+		),
+		'#required' => TRUE,
+		'#empty_option' => 'mm',
+   );
+  
+	$form['submit_button'] = array(
+		'#type' => 'submit',
+		'#value' => t('Ingresar'),
+	);
+	return $form;
+}
+
+/**
+ * Funcion que valida el formulario
+ * - Hay texto introducido
+ * - Esta en la BD
+ */
+function triton_form_builder_validate($form, &$form_state) {
+	if (strlen($form_state['values']['code']) == 0){
+		form_set_error('code', 'Tiene que ingresar un código. Por favor, inténtelo nuevamente.');
+	}
+	// $codigos_validos = array("12345", "23456", "34567");
+	$codigos_validos = file(dirname(__FILE__)."/codigos.csv", FILE_IGNORE_NEW_LINES);
+	if(!in_array($form_state['values']['code'], $codigos_validos)){
+		form_set_error('code', 'El código ingresado no es válido. Por favor, inténtelo nuevamente.');
+	}
+}
+/**
+ * Funcion que ejecuta el envio del formulario
+ * - Redirijo
+ */
+function triton_form_builder_submit($form, &$form_state) {
+	drupal_goto('formulario', array('query'=>array(
+			'code' => $form_state['values']['code'],
+			'machine' => $form_state['values']['machine'],
+			'hh' => $form_state['values']['hh'],
+			'mm' => $form_state['values']['mm'],
+	)));		
+}
+
+/**
+ * Implements hook_webform_validation_validate()
+ * Chequea el valro contra la base de datos de codigos Triton
+ */
+function tritoncode_webform_validation_validate($validator_name, $items, $components, $rule) {
+	watchdog('tritoncode', 'Validando Triton Code');
+	if ($items) {
+		switch ($validator_name) {
+			case 'triton_code':
+				// $codigos_validos = array("12345", "23456", "34567");
+				$codigos_validos = file(dirname(__FILE__)."/codigos.csv", FILE_IGNORE_NEW_LINES);
+				$errors = array();
+				foreach ($items as $key => $val) {
+					if ($val && (!in_array($val, $codigos_validos))) {
+						$errors[$key] = 'El código ingresado no es válido. Por favor, inténtelo nuevamente.';
+						watchdog('tritoncode', 'Una validacion es erronea');
+					}
+				}
+			return $errors;
+			break;
+		}
+	}
+}
